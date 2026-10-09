@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 470" role="img" aria-labelledby="t d" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <title id="t">Circuit breaker state machine</title>
+  <desc id="d">CLOSED goes to OPEN when at least N calls in the sliding window have an error percentage of at least X. After the open timeout, OPEN goes to HALF_OPEN. In HALF_OPEN, one failure goes back to OPEN and M successes go back to CLOSED, resetting the window.</desc>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#f87171"/></marker>
+    <marker id="aa" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#fbbf24"/></marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#34d399"/></marker>
+  </defs>
+  <rect width="960" height="470" rx="20" fill="#181818"/>
+  <rect x="0.5" y="0.5" width="959" height="469" rx="20" fill="none" stroke="#2b2b2b"/>
+  <text x="36" y="46" font-size="21" font-weight="700" fill="#e7e7e7">Circuit breaker: error % in a sliding window</text>
+
+  <!-- CLOSED -->
+  <rect x="36" y="90" width="250" height="120" rx="16" fill="#232323" stroke="#34d399" stroke-opacity="0.6" stroke-width="1.5"/>
+  <circle cx="62" cy="120" r="7" fill="#34d399"/>
+  <text x="78" y="126" font-size="19" font-weight="800" fill="#34d399">CLOSED</text>
+  <text x="58" y="158" font-size="13.5" fill="#cccccc">Calls go through. Each result</text>
+  <text x="58" y="177" font-size="13.5" fill="#cccccc">enters the sliding window.</text>
+
+  <!-- OPEN -->
+  <rect x="674" y="90" width="250" height="120" rx="16" fill="#232323" stroke="#f87171" stroke-opacity="0.6" stroke-width="1.5"/>
+  <circle cx="700" cy="120" r="7" fill="#f87171"/>
+  <text x="716" y="126" font-size="19" font-weight="800" fill="#f87171">OPEN</text>
+  <text x="696" y="158" font-size="13.5" fill="#cccccc">No call reaches the dependency.</text>
+  <text x="696" y="177" font-size="13.5" fill="#cccccc">Fail fast / jobs postponed.</text>
+
+  <!-- HALF_OPEN -->
+  <rect x="355" y="300" width="250" height="120" rx="16" fill="#232323" stroke="#fbbf24" stroke-opacity="0.6" stroke-width="1.5"/>
+  <circle cx="381" cy="330" r="7" fill="#fbbf24"/>
+  <text x="397" y="336" font-size="19" font-weight="800" fill="#fbbf24">HALF_OPEN</text>
+  <text x="377" y="368" font-size="13.5" fill="#cccccc">One test call at a time.</text>
+  <text x="377" y="387" font-size="13.5" fill="#cccccc">Everything else is rejected.</text>
+
+  <!-- CLOSED -> OPEN -->
+  <path d="M 290 150 L 668 150" stroke="#f87171" stroke-width="3" fill="none" marker-end="url(#ar)"/>
+  <rect x="318" y="98" width="320" height="38" rx="19" fill="#2a1d1d" stroke="#f87171" stroke-opacity="0.6"/>
+  <text x="478" y="122" font-size="13.5" font-weight="600" fill="#fca5a5" text-anchor="middle">≥ X% errors with ≥ N calls in the window</text>
+
+  <!-- OPEN -> HALF_OPEN -->
+  <path d="M 770 214 C 770 290, 710 350, 609 360" stroke="#fbbf24" stroke-width="3" fill="none" marker-end="url(#aa)"/>
+  <rect x="552" y="236" width="170" height="34" rx="17" fill="#2a2416" stroke="#fbbf24" stroke-opacity="0.6"/>
+  <text x="637" y="258" font-size="13.5" font-weight="600" fill="#fcd34d" text-anchor="middle">open timeout passes</text>
+
+  <!-- HALF_OPEN -> CLOSED -->
+  <path d="M 351 360 C 240 350, 160 290, 160 214" stroke="#34d399" stroke-width="3" fill="none" marker-end="url(#ag)"/>
+  <rect x="60" y="262" width="240" height="52" rx="14" fill="#16271f" stroke="#34d399" stroke-opacity="0.6"/>
+  <text x="180" y="284" font-size="13.5" font-weight="600" fill="#6ee7b7" text-anchor="middle">M successes</text>
+  <text x="180" y="303" font-size="12.5" fill="#9d9d9d" text-anchor="middle">closes and resets the window</text>
+
+  <!-- HALF_OPEN -> OPEN -->
+  <path d="M 609 395 C 780 410, 900 340, 900 214" stroke="#f87171" stroke-width="3" stroke-dasharray="8 7" fill="none" marker-end="url(#ar)"/>
+  <rect x="738" y="378" width="110" height="34" rx="17" fill="#2a1d1d" stroke="#f87171" stroke-opacity="0.6"/>
+  <text x="793" y="400" font-size="13.5" font-weight="600" fill="#fca5a5" text-anchor="middle">1 failure</text>
+
+  <text x="36" y="450" font-size="12.5" fill="#9d9d9d">Window: 10 buckets of 1 s by default. 4xx errors and bugs in our own code are ignored; they count neither as failure nor as success.</text>
+</svg>

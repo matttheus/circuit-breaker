@@ -1,0 +1,16 @@
+# Só o necessário para o build entra no contexto: menos upload, cache mais
+# estável e nenhum segredo/artefato local copiado por engano.
+node_modules
+dist
+coverage
+load-tests
+.git
+.gitignore
+.env*
+*.log
+**/*.spec.ts
+vitest.config.ts
+Dockerfile
+docker-compose*.yml
+.dockerignore
+README.md

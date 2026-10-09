@@ -1,0 +1,85 @@
+name: circuit-breaker
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: '3'
+
+services:
+  redis:
+    image: redis:7-alpine
+    command:
+      - redis-server
+      - --maxmemory
+      - 192mb
+      - --maxmemory-policy
+      - noeviction
+      - --appendonly
+      - 'yes'
+    ports:
+      - '127.0.0.1:6379:6379'
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-e', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    memswap_limit: 256M
+    restart: on-failure
+    logging: *logging
+
+  app:
+    profiles: [app]
+    build: .
+    image: circuit-breaker:local
+    environment:
+      PORT: 3000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CIRCUIT_BREAKER_STORE: redis
+      NODE_OPTIONS: --max-old-space-size=384
+    ports:
+      - '127.0.0.1:3000:3000'
+    depends_on:
+      redis:
+        condition: service_healthy
+    init: true
+    stop_grace_period: 30s
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+          pids: 128
+        reservations:
+          memory: 256M
+    memswap_limit: 512M
+    restart: on-failure
+    logging: *logging
+
+  k6:
+    profiles: [load-test]
+    image: grafana/k6:2.3.0
+    working_dir: /load-tests
+    volumes:
+      - ./load-tests:/load-tests
+    environment:
+      BASE_URL: http://app:3000
+      K6_WEB_DASHBOARD: 'true'
+      K6_WEB_DASHBOARD_PERIOD: 1s
+
+volumes:
+  redis-data:

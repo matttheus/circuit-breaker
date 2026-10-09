@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 500" role="img" aria-labelledby="t d" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <title id="t">Synchronous call flow</title>
+  <desc id="d">A request first goes through the semaphore, which answers 503 when full. Then the circuit breaker, which answers 503 when open. Then a single HTTP call with a timeout to the dependency, whose outcome maps to 200, the same 4xx status, 503 for 429, 502 for 5xx, 408 or network failure, and 504 for a timeout.</desc>
+  <defs>
+    <marker id="ab" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#6da7ec"/></marker>
+    <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#f87171"/></marker>
+    <marker id="ao" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#fbbf24"/></marker>
+  </defs>
+  <rect width="960" height="500" rx="20" fill="#181818"/>
+  <rect x="0.5" y="0.5" width="959" height="499" rx="20" fill="none" stroke="#2b2b2b"/>
+  <text x="36" y="46" font-size="21" font-weight="700" fill="#e7e7e7">Synchronous call: POST /sync/:dependency</text>
+  <text x="36" y="70" font-size="14" fill="#9d9d9d">Each layer can answer right away. The dependency is only called if both let the request through.</text>
+
+  <!-- main flow -->
+  <rect x="36" y="104" width="110" height="64" rx="14" fill="#232323" stroke="#3d3d3d"/>
+  <text x="91" y="142" font-size="15" font-weight="700" fill="#e7e7e7" text-anchor="middle">Request</text>
+
+  <rect x="186" y="96" width="160" height="80" rx="14" fill="#232323" stroke="#6da7ec" stroke-opacity="0.7" stroke-width="1.5"/>
+  <text x="266" y="126" font-size="16" font-weight="800" fill="#6da7ec" text-anchor="middle">1. Semaphore</text>
+  <text x="266" y="148" font-size="12.5" fill="#cccccc" text-anchor="middle">slots from Little's law</text>
+  <text x="266" y="165" font-size="12.5" fill="#9d9d9d" text-anchor="middle">per process, no queue</text>
+
+  <rect x="386" y="96" width="160" height="80" rx="14" fill="#232323" stroke="#6da7ec" stroke-opacity="0.7" stroke-width="1.5"/>
+  <text x="466" y="126" font-size="16" font-weight="800" fill="#6da7ec" text-anchor="middle">2. Circuit breaker</text>
+  <text x="466" y="148" font-size="12.5" fill="#cccccc" text-anchor="middle">error % in the window</text>
+  <text x="466" y="165" font-size="12.5" fill="#9d9d9d" text-anchor="middle">in-memory state</text>
+
+  <rect x="586" y="96" width="170" height="80" rx="14" fill="#232323" stroke="#6da7ec" stroke-opacity="0.7" stroke-width="1.5"/>
+  <text x="671" y="126" font-size="16" font-weight="800" fill="#6da7ec" text-anchor="middle">3. HTTP call</text>
+  <text x="671" y="148" font-size="12.5" fill="#cccccc" text-anchor="middle">2 s timeout</text>
+  <text x="671" y="165" font-size="12.5" fill="#9d9d9d" text-anchor="middle">1 attempt, no retry</text>
+
+  <rect x="796" y="104" width="128" height="64" rx="14" fill="#232323" stroke="#3d3d3d"/>
+  <text x="860" y="142" font-size="15" font-weight="700" fill="#e7e7e7" text-anchor="middle">Dependency</text>
+
+  <path d="M 148 136 L 182 136" stroke="#6da7ec" stroke-width="3" fill="none" marker-end="url(#ab)"/>
+  <path d="M 348 136 L 382 136" stroke="#6da7ec" stroke-width="3" fill="none" marker-end="url(#ab)"/>
+  <path d="M 548 136 L 582 136" stroke="#6da7ec" stroke-width="3" fill="none" marker-end="url(#ab)"/>
+  <path d="M 758 136 L 792 136" stroke="#6da7ec" stroke-width="3" fill="none" marker-end="url(#ab)"/>
+
+  <!-- exits -->
+  <path d="M 266 180 L 266 250" stroke="#f87171" stroke-width="3" fill="none" marker-end="url(#ar)"/>
+  <text x="278" y="222" font-size="13" font-weight="600" fill="#fca5a5">full</text>
+  <rect x="176" y="254" width="180" height="104" rx="14" fill="#2a1d1d" stroke="#f87171" stroke-opacity="0.6"/>
+  <text x="266" y="284" font-size="20" font-weight="800" fill="#fca5a5" text-anchor="middle">503</text>
+  <text x="266" y="308" font-size="13" fill="#cccccc" text-anchor="middle">Retry-After: 1</text>
+  <text x="266" y="328" font-size="12.5" fill="#9d9d9d" text-anchor="middle">fail fast, ~1 ms</text>
+  <text x="266" y="346" font-size="12.5" fill="#9d9d9d" text-anchor="middle">does not count as a failure</text>
+
+  <path d="M 466 180 L 466 250" stroke="#f87171" stroke-width="3" fill="none" marker-end="url(#ar)"/>
+  <text x="478" y="222" font-size="13" font-weight="600" fill="#fca5a5">open</text>
+  <rect x="376" y="254" width="180" height="104" rx="14" fill="#2a1d1d" stroke="#f87171" stroke-opacity="0.6"/>
+  <text x="466" y="284" font-size="20" font-weight="800" fill="#fca5a5" text-anchor="middle">503</text>
+  <text x="466" y="308" font-size="13" fill="#cccccc" text-anchor="middle">Retry-After: time left</text>
+  <text x="466" y="328" font-size="12.5" fill="#9d9d9d" text-anchor="middle">fail fast, ~1 ms</text>
+  <text x="466" y="346" font-size="12.5" fill="#9d9d9d" text-anchor="middle">dependency is not called</text>
+
+  <path d="M 671 180 L 671 250" stroke="#fbbf24" stroke-width="3" fill="none" marker-end="url(#ao)"/>
+  <text x="683" y="222" font-size="13" font-weight="600" fill="#fcd34d">outcome</text>
+  <rect x="576" y="254" width="290" height="150" rx="14" fill="#232323" stroke="#3d3d3d"/>
+  <text x="594" y="280" font-size="13.5" fill="#cccccc"><tspan font-weight="800" fill="#6da7ec">200</tspan>   success, dependency's body</text>
+  <text x="594" y="304" font-size="13.5" fill="#cccccc"><tspan font-weight="800" fill="#6da7ec">4xx</tspan>   same status (not a failure)</text>
+  <text x="594" y="328" font-size="13.5" fill="#cccccc"><tspan font-weight="800" fill="#fcd34d">503</tspan>   429, with its Retry-After</text>
+  <text x="594" y="352" font-size="13.5" fill="#cccccc"><tspan font-weight="800" fill="#fca5a5">502</tspan>   5xx, 408 or network failure</text>
+  <text x="594" y="376" font-size="13.5" fill="#cccccc"><tspan font-weight="800" fill="#fca5a5">504</tspan>   timeout</text>
+  <text x="594" y="395" font-size="11.5" fill="#9d9d9d">failures: 5xx, 408, 429, timeout, network</text>
+
+  <text x="36" y="448" font-size="13" fill="#cccccc">The semaphore sits <tspan font-weight="700" fill="#e7e7e7">outside</tspan> the circuit breaker: a spike in our own traffic rejects only the excess</text>
+  <text x="36" y="468" font-size="13" fill="#cccccc">and never opens the circuit. A slow dependency is caught by the timeouts, which do count.</text>
+</svg>
